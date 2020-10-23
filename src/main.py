@@ -49,8 +49,9 @@ def get_least_worst_suggestion(suggestions):
     for s in suggestions:
         max_s = 0
         for w in s:
-            max_s = bm25.get_scores([w]).sum()
+            max_s += bm25.get_scores([w]).sum()
         if max_s > max_score:
+            max_score = max_s
             max_suggestion = s
     return max_suggestion
 
@@ -80,6 +81,7 @@ while True:
                 alt = spell.known(spell.edit_distance_1(w))
                 word_sets.append([w] if len(alt) > alt_threshold else list(alt))
             suggestions = list(itertools.product(*word_sets))
+            print(suggestions)
             best_suggestion = get_best_suggestion(suggestions)
             if not best_suggestion:
                 best_suggestion = get_least_worst_suggestion(suggestions)
