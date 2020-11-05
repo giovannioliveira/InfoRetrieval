@@ -6,6 +6,8 @@ import json
 from spellchecker import SpellChecker
 from rank_bm25 import BM25Okapi
 
+#Stem = nltk.stem.snowball.EnglishStemmer().stem
+
 regular_docs = None
 dictionary = None
 token_docs = None
@@ -55,9 +57,7 @@ def get_least_worst_suggestion(suggestions):
             max_suggestion = s
     return max_suggestion
 
-
-while True:
-    query = input()
+def handleQuery(query):
     token_query = list(set(map((lambda x: x.lower()),
                            filter((lambda x: x not in string.punctuation), nltk.word_tokenize(query)))))
     scores = get_scores(token_query)
@@ -81,23 +81,29 @@ while True:
                 alt = spell.known(spell.edit_distance_1(w))
                 word_sets.append([w] if len(alt) > alt_threshold else list(alt))
             suggestions = list(itertools.product(*word_sets))
-            print(suggestions)
             best_suggestion = get_best_suggestion(suggestions)
             if not best_suggestion:
                 best_suggestion = get_least_worst_suggestion(suggestions)
             if not best_suggestion:
                 best_suggestion = token_query
             token_query = best_suggestion
-            scores = get_scores(token_query)
-        print('Changing null query to: '+' '.join(token_query))
+        print('Changing null query to: ' + ' '.join(token_query))
+    return token_query
 
-    if numpy.count_nonzero(scores) == 0:
-        print('Definitive null query')
-    else:
-        results = []
-        for (i, value) in enumerate(scores):
-            if value != 0:
-                results.append((regular_docs[i], value))
-        results.sort(reverse=True, key=(lambda x: x[1]))
-        for item in results:
-            print(item)
+
+if __name__ == "__main__":
+    while True:
+        query = input()
+        token_query = handleQuery(query)
+        scores = get_scores(token_query)
+
+        if numpy.count_nonzero(scores) == 0:
+            print('Definitive null query')
+        else:
+            results = []
+            for (i, value) in enumerate(scores):
+                if value != 0:
+                    results.append((regular_docs[i], value))
+            results.sort(reverse=True, key=(lambda x: x[1]))
+            for item in results:
+                print(item)
